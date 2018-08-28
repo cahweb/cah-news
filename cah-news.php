@@ -156,6 +156,7 @@ function get_displayed_departments() {
     return $displayDept;
 }
 
+// DEPRECIATED
 function query_news($deptIDs, $args)
 {
     $per_page = $args['per_page']; 
@@ -192,6 +193,7 @@ function query_news($deptIDs, $args)
     return new WP_Query($args);
 }
 
+// DEPRECIATED
 function display_news($news_query, $current_blog) {
     cah_news_before(); 
     echo "<div class='ucf-news modern'>";
@@ -235,7 +237,6 @@ function display_news($news_query, $current_blog) {
 // Display post preview with JSON information from REST API
 function cah_news_display_post($post) {
     if (!is_object($post)) return;
-    $id = $post->id; 
     $title = $post->title->rendered;
     $excerpt = $post->excerpt->rendered;
     $link = esc_url(add_query_arg(array('postID' => $post->id), get_home_url(null, 'news-post')));
@@ -252,7 +253,7 @@ function cah_news_display_post($post) {
             <a href="<?=$link?>" class="p-3">
             <?
             if ($thumbnail) {
-                echo '<img data-src="' . $thumbnail . '" width="150" height="150" class="mr-3" aria-label="Featured image">';
+                echo '<img data-src="' . $thumbnail . '" width="150" height="150" class="mr-3 float-left" aria-label="Featured image">';
             }
             ?>
                 <div class="ucf-news-item-content">
@@ -269,6 +270,7 @@ function cah_news_display_post($post) {
     <?
 }
 
+// DEPRECIATED
 function cah_news_post($id) {
     $post_url = esc_url(add_query_arg(array('postID' => $id), get_home_url(null, 'news-post')));
     ?>

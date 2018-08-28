@@ -44,6 +44,7 @@ function cah_news_shortcode($atts) {
         echo sprintf('<a class="btn btn-primary btn-sm" href="%s">More News</a><br>', home_url($news_page));
     }
     else {
+        cah_news_search();
         cah_news_get_news($atts['per_page'], true);
     }
 }
