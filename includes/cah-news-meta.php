@@ -36,23 +36,31 @@ function cah_news_categories_tags($post_ID) {
 
 // Display links to posts with same categories as current news post
 function cah_news_related_posts($post_ID) {
+    $dept = get_option('cah_news_display_dept2');
     switch_to_blog(1);
     $cats = wp_get_post_categories($post_ID);
     restore_current_blog();
 
     $posts = cah_news_query(array(
-        'dept' => get_option('cah_news_display_dept2'),
+        'dept' => $dept,
         'categories' => $cats,
         'per_page' => 4,
         'exclude' => $post_ID,
     ));
 
+    $dept = count($dept) === 1 ? $dept[0] : 0;
+
     if ($posts) {
         echo '<h4>Related Posts</h4>';
         echo '<ul class="list-group list-group-flush">';
         foreach($posts as $post) {
+            $link = $post->link;
+            if ($dept) {
+                $link = add_query_arg(['dept' => $dept], $link);
+            }
+            $link = esc_url($link);
             $post_url = esc_url(add_query_arg(array('postID' => $post->id), get_home_url(null, 'news-post')));
-            echo sprintf('<a href="%s"><li class="list-group-item list-group-item-action">%s</li></a>', $post_url, $post->title->rendered);
+            echo sprintf('<a href="%s"><li class="list-group-item list-group-item-action">%s</li></a>', $link, $post->title->rendered);
         }
         echo '</ul>';
     }
@@ -60,10 +68,10 @@ function cah_news_related_posts($post_ID) {
 
 // Return to referrer
 function referral($content='') {
-    $ref_string = '<a href="%s" class="btn btn-outline-primary btn-sm my-4">%s</a>';
+    $ref_string = '<a href="%s" class="btn btn-default btn-sm mt-4">%s</a>';
     if (isset($_SERVER['HTTP_REFERER'])) {
         $ref_url = $_SERVER['HTTP_REFERER'];
-        if (!preg_match('/news-post/', $ref_url)) {
+        if (!preg_match('/archive/', $ref_url)) {
             $ref = sprintf($ref_string, $_SERVER['HTTP_REFERER'], '&laquo; Back to news');
             return $content . $ref;
         }

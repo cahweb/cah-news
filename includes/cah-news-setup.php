@@ -51,8 +51,7 @@ function create_dept_tax() {
 
 // Get Blog ID associated with a department taxonomy 
 function cah_news_get_blog_id($dept_id) {
-
-    $id = get_term_meta($dept_id, 'blog_id', true); 
+    $id = get_term_meta($dept_id, 'blog_id', true);
     if (!$id) {
         $blogs = []; 
         foreach(get_sites() as $site) {
@@ -66,12 +65,15 @@ function cah_news_get_blog_id($dept_id) {
             return $blogs[$dept_name]; 
         }
         return -1; 
-
-    } 
+    }
     else {
         return $id; 
     }
+}
 
+function cah_news_get_dept_id() {
+    $site = get_current_blog_id();
+    return $site;
 }
 
 ?>

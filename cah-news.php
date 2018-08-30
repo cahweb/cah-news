@@ -8,7 +8,9 @@
  *
  */
 
+// Constants
 define('CAH_NEWS_PLUGIN_PATH', plugin_dir_path(__FILE__));
+define('CAH_NEWS_DEPARTMENT_GET_VAR', 'd');
 
 // Included files 
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-setup.php';
@@ -39,10 +41,18 @@ function cah_news_get_news($per_page=4, $paged=true) {
         return;
     }
     $max_pages = $result['max_pages'];
+    $dept = get_option('cah_news_display_dept2');
+    if (count($dept) === 1) {
+        $dept = $dept[0];
+    }
+    else {
+        $dept = 0;
+    }
 
-    echo '<div class="ucf-news modern">';
+
+    echo '<div class="mb-2">';
     foreach ($posts as $post) {
-        cah_news_display_post($post);
+        cah_news_display_post($post, $dept);
     }
     echo '</div>';
 
@@ -55,8 +65,9 @@ function cah_news_get_news($per_page=4, $paged=true) {
 // Search function
 function cah_news_search() {
     $search_query = isset($_GET['search']) ? esc_attr($_GET['search']) : '';
+    $action = cah_news_get_news_page_link();
     ?>
-    <form role="search" method="get" id="search-form" class="mb-3">
+    <form role="search" method="get" id="search-form" class="mb-3" action="<?= $action ?>">
         <div class="input-group">
             <input type="search" placeholder="Show me news on..." name="search" class="form-control" id="search-input" value="<?= $search_query ?>" aria-label="Search for news"/>
             <!-- <input class="screen-reader-text" type="submit" id="search-submit" value="Search" /> -->
@@ -103,11 +114,9 @@ function cah_news_query($params, $advanced=false, $embed=true) {
         $query .= '_embed';
     }
 
-
     $request_url = $base_url . $query;
     $response = wp_remote_get($request_url, array('timeout'=>20));
     if (is_wp_error($response)) {
-        echo 'Error showing news ';
         return null;
     }
 
@@ -124,31 +133,17 @@ function cah_news_query($params, $advanced=false, $embed=true) {
 }
 
 // Retrieve thumbnail media from post JSON
-function cah_news_get_thumbnail($post) {
-    $media = $post->_links->{'wp:featuredmedia'}; 
-    if ($media->embeddable == true) {
-        $img_href = $media->href; 
+function cah_news_get_thumbnail($post, $sizes=['medium_large', 'medium']) {
+    if (isset($post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes->thumbnail->source_url))
+    {
+        $media_sizes = $post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes;
+        foreach($sizes as $size) {
+            if ( isset($media_sizes->{$size}->source_url) ) {
+                return $media_sizes->{$size}->source_url; 
+            }
+        }
     }
-}
-
-// Filter excerpt length
-function cah_news_excerpt_length($length) {
-    return 20; 
-}
-
-// Change 'Read more' string of excerpt 
-function cah_news_excerpt_more($more) {
-    return '...'; 
-}
-
-// Add filters to modify display of news posts 
-function cah_news_before() {
-    // Load scripts and styles
-    // add_action('wp_enqueue_scripts', 'cah_news_enqueue_assets');
-
-    // Change excerpt display properties 
-    add_filter('excerpt_more', 'cah_news_excerpt_more'); 
-    add_filter('excerpt_length', 'cah_news_excerpt_length'); 
+    return false; 
 }
 
 function get_displayed_departments() {
@@ -156,117 +151,87 @@ function get_displayed_departments() {
     return $displayDept;
 }
 
-// DEPRECIATED
-function query_news($deptIDs, $args)
-{
-    $per_page = $args['per_page']; 
-    $cat = $args['cat']; 
-    $paged = get_query_var('paged', 1); 
-
-    if (get_current_blog_id() !== 1)
-        switch_to_blog(1);
-    $args = array(
-        'post_type' => 'news',
-        'tax_query' => array(
-            array(
-                'taxonomy' => 'dept',
-                'field' => 'term_id',
-                'terms' => $deptIDs,
-            )
-        ),
-        'posts_per_page' => $per_page,
-        'paged' => $paged,
-    );
-
-    if (!empty($cat)) {
-        $args['category__in'] = $cat; 
-    }
-
-    if (isset($_GET['search'])) {
-        $args['s'] = esc_attr($_GET['search']);
-    }
-    
-    if (!empty($args['exclude'])) {
-        $args['post__not_in'] = array($args['exclude']); 
-        // $args['ignore_sticky_posts'] = true; 
-    }
-    return new WP_Query($args);
-}
-
-// DEPRECIATED
-function display_news($news_query, $current_blog) {
-    cah_news_before(); 
-    echo "<div class='ucf-news modern'>";
-    if ($news_query->have_posts()) : while ($news_query->have_posts()) : $news_query->the_post(); 
-        $post_ID = get_the_id(); 
-        $post_url = esc_url(add_query_arg(array('postID' => $post_ID), get_home_url($current_blog, 'news-post'))); 
-    ?>
-        <div class="ucf-news-item p-0">
-        <a href="<?= $post_url ?>" class='p-3'>
-            <? 
-            $img = get_the_post_thumbnail_url($post_ID, 'thumbnail'); 
-            if ($img): ?>
-                <img data-src="<?= $img?>" width='150' height='150' class='mr-3' aria-label`="Featured image">
-            <? endif; ?>
-            <div class="ucf-news-item-content">
-                <div class="ucf-news-item-details">
-                    <h5 class='ucf-news-item-title'><? the_title(); ?></h5>
-                    <p class="ucf-news-item-excerpt">
-                        <span class="meta text-muted"><? the_date() ?> - </span>
-                        <?
-                        the_excerpt();
-                        wp_reset_postdata();
-                        ?>
-                    </p>
-                </div>
-            </div>
-        </a>
-        </div>
-    <?php endwhile; 
-    else:
-        echo 'No posts found'; 
-    endif; 
-     
-    ?>
-
-    </div>
-
-   <?
-}
-
 // Display post preview with JSON information from REST API
-function cah_news_display_post($post) {
+function cah_news_display_post($post, $dept=0) {
     if (!is_object($post)) return;
     $title = $post->title->rendered;
-    $excerpt = $post->excerpt->rendered;
-    $link = esc_url(add_query_arg(array('postID' => $post->id), get_home_url(null, 'news-post')));
+    $excerpt = cah_news_excerpt($post->excerpt->rendered);
+//    $link = esc_url(add_query_arg(array('postID' => $post->id), get_home_url(null, 'news-post')));
+//    $link = esc_url(add_query_arg(array('dept' => get_current_blog_id()), $post->link));
+
+    $link = $post->link;
+    if ($dept) {
+        $link = add_query_arg(['dept' => $dept], $link);
+    }
+    $link = esc_url($link);
+
     $date = date_format(date_create($post->date), 'F d, Y');
-    $thumbnail = ''; 
-    // // $thumbnail = $post.embedded.{'wp:featuredmedia'}.media_details.sizes.thumbnail.source_url; 
+    $thumbnail = '';
+    // // $thumbnail = $post.embedded.{'wp:featuredmedia'}.media_details.sizes.thumbnail.source_url;
     if (isset($post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes->thumbnail->source_url))
     {
         $thumbnail = $post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes->thumbnail->source_url;
     }
 
     ?>
-        <div class="ucf-news-item p-0">
-            <a href="<?=$link?>" class="p-3">
+
+    <a class="cah-news-item" href="<?=$link?>">
+    <div class="media py-3 px-2">
+            <?
+            if ($thumbnail) {
+                echo '<img data-src="' . $thumbnail . '" width="150" class="d-flex align-self-start mr-3" aria-label="Featured image">';
+                echo '<noscript>No Javascript<img src="' . $thumbnail . '" width="150" height="150" class="d-flex align-self-start mr-3" aria-label="Featured image" /></noscript>';
+            }
+            ?>
+            <div class="media-body">
+                <h5 class="mt-0"><?=$title?></h5>
+                <p>
+                    <span class="text-muted"><?=$date?>&nbsp;</span>
+                    <?=$excerpt?>
+                </p>
+            </div>
+    </div>
+    </a>
+    <?
+}
+
+// Modify excerpt for display
+function cah_news_excerpt($text) {
+    return wp_trim_words($text, 20, '...');
+}
+
+function cah_news_display_post_copy($post) {
+    if (!is_object($post)) return;
+    $title = $post->title->rendered;
+    $excerpt = $post->excerpt->rendered;
+    $link = esc_url(add_query_arg(array('postID' => $post->id), get_home_url(null, 'news-post')));
+    $date = date_format(date_create($post->date), 'F d, Y');
+    $thumbnail = '';
+    // // $thumbnail = $post.embedded.{'wp:featuredmedia'}.media_details.sizes.thumbnail.source_url;
+    if (isset($post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes->thumbnail->source_url))
+    {
+        $thumbnail = $post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes->thumbnail->source_url;
+    }
+
+    ?>
+    <div class="ucf-news-item p-0">
+        <a href="<?=$link?>" class="p-3">
             <?
             if ($thumbnail) {
                 echo '<img data-src="' . $thumbnail . '" width="150" height="150" class="mr-3 float-left" aria-label="Featured image">';
             }
             ?>
-                <div class="ucf-news-item-content">
-                    <div class="ucf-news-item-details">
-                        <h5 class="ucf-news-item-title"><?=$title?></h5>
-                        <p class="ucf-news-item-excerpt">
-                            <span class="text-muted"><?=$date?></span>
-                            <?=$excerpt?>
-                        </p>
-                    </div>
+            <div class="ucf-news-item-content">
+                <div class="ucf-news-item-details">
+                    <h5 class="ucf-news-item-title"><?=$title?></h5>
+                    <p class="ucf-news-item-excerpt">
+                        <span class="text-muted"><?=$date?></span>
+                        <?=$excerpt?>
+                    </p>
                 </div>
-            </a>
-        </div>
+            </div>
+        </a>
+    </div>
     <?
 }
 
@@ -338,10 +303,11 @@ function cah_news_pagination($max_pages) {
         <ul class="pagination pagination-lg">
             <?
             if ($show_prev) {
-                echo sprintf('<li class="page-item"><a class="page-link" href="%s">&laquo; Previous page</a></li>', get_pagenum_link($current_page-1));
+                echo sprintf('<li class="page-item"><a class="page-link" href="%s">&laquo; Previous</a></li>', get_pagenum_link($current_page-1));
             }
 
             $prev = $page_nums[0];
+            echo '<span class="hidden-sm-down d-flex">';
             foreach($page_nums as $page) {
                 // divider
                 if ($page - $prev > 1) {
@@ -352,9 +318,9 @@ function cah_news_pagination($max_pages) {
                 echo sprintf('<li class="page-item %s"><a href="%s" class="page-link">%s</a></li>', $active, $link, $page);
                 $prev = $page;
             }
-
+            echo '</span>';
             if ($show_next) {
-                echo sprintf('<li class="page-item"><a class="page-link" href="%s">Next page &raquo;</a></li>', get_pagenum_link($current_page+1));
+                echo sprintf('<li class="page-item"><a class="page-link" href="%s">Next &raquo;</a></li>', get_pagenum_link($current_page+1));
             }
             ?>
         </ul>
@@ -391,12 +357,13 @@ function get_uncategorized_news() {
 // Get direct links to child sites where post appears
 function cah_news_get_post_links($id, $exclude=[]) {
     $terms = wp_get_post_terms($id, 'dept');
+    $permalink = get_the_permalink($id);
     $links = [];
     foreach($terms as $term) {
         $dept_id = $term->term_id;
         if (!in_array($dept_id, $exclude)) {
-            $blog_id = cah_news_get_blog_id($dept_id);
-            $post_url = add_query_arg('postID', $id, get_home_url($blog_id, 'news-post'));
+//            $blog_id = cah_news_get_blog_id($dept_id);
+            $post_url = esc_url(add_query_arg('dept', $dept_id, $permalink));
             $links[] = sprintf('<a href="%s">%s</a>', $post_url, $term->name);
         }
     }
