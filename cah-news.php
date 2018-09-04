@@ -10,13 +10,13 @@
 
 // Constants
 define('CAH_NEWS_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('CAH_NEWS_DEPARTMENT_GET_VAR', 'd');
+define('CAH_NEWS_REST_BASE', 'https://wordpress.cah.ucf.edu/wp-json/wp/v2/');
 
 // Included files 
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-setup.php';
 
 
-function cah_news_get_news($per_page=4, $paged=true) {
+function cah_news_get_news($per_page=8, $paged=true) {
 
     $query = array(
         'dept' => get_option('cah_news_display_dept2'),
@@ -33,11 +33,23 @@ function cah_news_get_news($per_page=4, $paged=true) {
         $query['search'] = esc_attr($_GET['search']);
     }
 
+    if (isset($_GET['cat'])) {
+        $cat = esc_attr($_GET['cat']);
+        $query['categories'] = $cat;
+        $cat_name = cah_news_get_category_name($cat);
+        if ($cat_name) {
+            echo '<span class="text-muted">Category: </span>' . $cat_name . '<br>';
+        }
+    }
+
     $query['page'] = max(get_query_var('paged'), 1);
 
     $result = cah_news_query($query, true);
     $posts = $result['posts'];
-    if ($posts === null) {
+
+    // Post count
+    if ($posts === null || count($posts) < 1) {
+        echo sprintf('<br><span><b>No posts found.</b> Please <a href="%s">refresh</a> or try another query.</span><br>', cah_news_get_news_page_link());
         return;
     }
     $max_pages = $result['max_pages'];
@@ -60,6 +72,23 @@ function cah_news_get_news($per_page=4, $paged=true) {
         cah_news_pagination($max_pages);
     }
 
+}
+
+function cah_news_get_rest_body($request) {
+    $request = CAH_NEWS_REST_BASE . $request;
+    $response = wp_remote_get($request, array('timeout'=>20));
+    if (is_wp_error($response)) {
+        return false;
+    }
+    $body = json_decode(wp_remote_retrieve_body($response));
+    return $body;
+}
+
+function cah_news_get_category_name($cat_ID) {
+    $response = cah_news_get_rest_body('categories/' . $cat_ID);
+    if ($response) {
+        return $response->name;
+    }
 }
 
 // Search function
@@ -125,6 +154,7 @@ function cah_news_query($params, $advanced=false, $embed=true) {
         return $body;
     }
     $max_pages = $response['headers']['X-WP-TotalPages'];
+
     $result = array(
             'posts' => $body,
             'max_pages' => $max_pages,
@@ -179,9 +209,12 @@ function cah_news_display_post($post, $dept=0) {
     <div class="media py-3 px-2">
             <?
             if ($thumbnail) {
-                echo '<img data-src="' . $thumbnail . '" width="150" class="d-flex align-self-start mr-3" aria-label="Featured image">';
-                echo '<noscript>No Javascript<img src="' . $thumbnail . '" width="150" height="150" class="d-flex align-self-start mr-3" aria-label="Featured image" /></noscript>';
+                echo '<img data-src="' . $thumbnail . '" class="d-flex align-self-start mr-3" aria-label="Featured image">';
+                echo '<noscript><img src="' . $thumbnail . '" width="150" height="150" class="d-flex align-self-start mr-3" aria-label="Featured image"></noscript>';
             }
+//            else {
+//                echo '<div class="mr-3" style="padding-right:150px"></div>';
+//            }
             ?>
             <div class="media-body">
                 <h5 class="mt-0"><?=$title?></h5>
@@ -373,6 +406,7 @@ function cah_news_get_post_links($id, $exclude=[]) {
 
 
 // Included files 
+require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-search.php';
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-shortcode.php';
 require_once CAH_NEWS_PLUGIN_PATH . 'admin/cah-news-toolbar.php';
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-meta.php';

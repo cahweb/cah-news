@@ -3,9 +3,11 @@
 add_action('admin_bar_menu', 'cah_news_toolbar_link', 999);
 function cah_news_toolbar_link($wp_admin_bar) {
     // Add link to edit post
-    if (is_page('news-post') && isset($_GET['postID'])) {
-        $postID = $_GET['postID'];
-        $link = get_edit_post_link($postID);
+    if (get_post_type() === 'news' && isset($_GET['dept'])) {
+        $post_ID = get_the_ID();
+        switch_to_blog(1);
+        $link = get_edit_post_link($post_ID);
+        restore_current_blog();
 
         $wp_admin_bar->add_node( array(
             'id'		=> 'cah-news-edit-link',

@@ -6,7 +6,7 @@ function cah_news_shortcode_new($atts) {
     $atts = shortcode_atts(array(
         'dept' => array(),
         'limit' => -1,
-        'per_page' => 5,
+        'per_page' => 8,
         'view' => 'full',
         'cat'  => array(),
         'exclude' => array(), 
@@ -21,7 +21,8 @@ function cah_news_shortcode_new($atts) {
 
     if ($atts['view'] == 'full') {
         cah_news_search();
-        cah_news_get_news(); 
+        cah_news_select_category();
+        cah_news_get_news($atts['per_page']);
     }
 
   
@@ -32,7 +33,7 @@ function cah_news_shortcode($atts) {
     $atts = shortcode_atts(array(
         'dept' => array(),
         'limit' => -1,
-        'per_page' => 5,
+        'per_page' => 8,
         'view' => 'full',
         'cat'  => array(),
         'exclude' => array(),
@@ -40,11 +41,12 @@ function cah_news_shortcode($atts) {
 
     if ($atts['view'] == 'preview') {
         cah_news_get_news(3, false);
-        $news_page = get_option('cah_news_set_news_page', 'news');
-        echo sprintf('<a class="btn btn-primary btn-sm" href="%s">More News</a><br>', home_url($news_page));
+        $news_page = cah_news_get_news_page_link();
+        echo sprintf('<a class="btn btn-primary btn-sm" href="%s">More News</a><br>', $news_page);
     }
     else {
         cah_news_search();
+        cah_news_select_category();
         cah_news_get_news($atts['per_page'], true);
     }
 }
