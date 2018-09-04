@@ -36,10 +36,6 @@ function cah_news_get_news($per_page=8, $paged=true) {
     if (isset($_GET['cat'])) {
         $cat = esc_attr($_GET['cat']);
         $query['categories'] = $cat;
-        $cat_name = cah_news_get_category_name($cat);
-        if ($cat_name) {
-            echo '<span class="text-muted">Category: </span>' . $cat_name . '<br>';
-        }
     }
 
     $query['page'] = max(get_query_var('paged'), 1);
@@ -62,7 +58,7 @@ function cah_news_get_news($per_page=8, $paged=true) {
     }
 
 
-    echo '<div class="mb-2">';
+    echo '<div class="my-4">';
     foreach ($posts as $post) {
         cah_news_display_post($post, $dept);
     }
@@ -89,26 +85,6 @@ function cah_news_get_category_name($cat_ID) {
     if ($response) {
         return $response->name;
     }
-}
-
-// Search function
-function cah_news_search() {
-    $search_query = isset($_GET['search']) ? esc_attr($_GET['search']) : '';
-    $action = cah_news_get_news_page_link();
-    ?>
-    <form role="search" method="get" id="search-form" class="mb-3" action="<?= $action ?>">
-        <div class="input-group">
-            <input type="search" placeholder="Show me news on..." name="search" class="form-control" id="search-input" value="<?= $search_query ?>" aria-label="Search for news"/>
-            <!-- <input class="screen-reader-text" type="submit" id="search-submit" value="Search" /> -->
-            <span class="input-group-btn">
-                <button class="btn btn-primary" type="submit" role="button" aria-label="Submit search">
-                    <i class="fa fa-search"></i>
-                </button>
-            </span>
-            <span class="input-group-addon"><a href="<?= cah_news_get_news_page_link() ?>">Reset</a></span>
-        </div>
-    </form>
-    <?
 }
 
 // Get a link to the main news page on the site
@@ -266,34 +242,6 @@ function cah_news_display_post_copy($post) {
         </a>
     </div>
     <?
-}
-
-// DEPRECIATED
-function cah_news_post($id) {
-    $post_url = esc_url(add_query_arg(array('postID' => $id), get_home_url(null, 'news-post')));
-    ?>
-        <div class="ucf-news-item">
-        <a href="<?= $post_url ?>">
-            <? if ($img = get_the_post_thumbnail_url()): ?>
-                <div class="ucf-news-thumbnail-image-cah mr-3"
-                     style="background-image:url('<?= $img ?>'">
-                </div>
-            <? endif; ?>
-            <div class="ucf-news-item-content">
-                <div class="ucf-news-item-details">
-                    <h4 class="ucf-news-item-title"><? the_title(); ?></h4>
-                    <p class="ucf-news-item-excerpt">
-                        <span class="meta text-muted"><? the_date() ?> - </span>
-                        <?
-                        the_excerpt();
-                        wp_reset_postdata();
-                        ?>
-                    </p>
-                </div>
-            </div>
-        </a>
-        </div>
-   <?
 }
 
 // Display pagination navigation 

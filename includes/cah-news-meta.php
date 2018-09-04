@@ -39,7 +39,6 @@ function cah_news_categories_tags($post_ID) {
     echo $tags;
 }
 
-
 // Display links to posts with same categories as current news post
 function cah_news_related_posts($post_ID) {
     $dept = get_option('cah_news_display_dept2');
@@ -88,7 +87,7 @@ function referral($content='') {
 
 // Return URL to site's news page
 function cah_news_get_news_link() {
-    return get_home_url(null, get_option('cah_news_set_news_page', 'news'));
+    return esc_url(get_home_url(null, get_option('cah_news_set_news_page', 'news')));
 }
 
 // Change page title (<head><title>...) to the correct blog
@@ -98,6 +97,7 @@ function cah_news_change_title()
     return $post_title . ' &raquo; ' . get_bloginfo('name');
 }
 
+// Social media share links
 function cah_news_share($title, $link) {
   ?>
                     <p class='d-inline-block text-muted'>Share</p>
@@ -126,6 +126,7 @@ function cah_news_share($title, $link) {
     <?
 }
 
+// Fetch footer from remote site registered with wp-rest-api-sidebars plugin
 function cah_news_fetch_footer($footer_id) {
     $url = esc_url(home_url());
     $endpoint = 'wp-json/wp-rest-api-sidebars/v1/sidebars/' . $footer_id;

@@ -71,9 +71,4 @@ function cah_news_get_blog_id($dept_id) {
     }
 }
 
-function cah_news_get_dept_id() {
-    $site = get_current_blog_id();
-    return $site;
-}
-
 ?>
