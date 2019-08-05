@@ -14,6 +14,7 @@ function cah_news_categories_tags($post_ID) {
     switch_to_blog(1);
     $post_categories = wp_get_post_categories($post_ID, [
         'fields' => 'all',
+        'exclude' => 1,
     ]);
     $tags = get_the_tag_list(
         '<span class="text-muted">Tags:</span> ',
@@ -26,7 +27,7 @@ function cah_news_categories_tags($post_ID) {
     $cat_str = '<a href="%s">%s</a>';
     $base_url = cah_news_get_news_link();
     foreach($post_categories as $cat) {
-        $link = add_query_arg('cat', $cat->term_id, $base_url);
+		$link = add_query_arg('cat', $cat->term_id, $base_url);		
         $cat_links[] = sprintf($cat_str, $link, $cat->name);
     }
 
@@ -41,8 +42,20 @@ function cah_news_categories_tags($post_ID) {
 
 // Display links to posts with same categories as current news post
 function cah_news_related_posts($post_ID) {
-    $dept = get_option('cah_news_display_dept2');
     switch_to_blog(1);
+    $terms = get_the_terms($post_ID, 'dept');
+    $dept = [];
+    if (is_array($terms)) {
+        foreach($terms as $term) {
+            $dept[] = $term->term_id;
+        }
+    }
+    elseif(is_object($terms)) {
+        $dept = $terms->term_id;
+    }
+    else {
+        $dept = [];
+    }
     $cats = wp_get_post_categories($post_ID);
     restore_current_blog();
 
@@ -86,8 +99,8 @@ function referral($content='') {
 }
 
 // Return URL to site's news page
-function cah_news_get_news_link() {
-    return esc_url(get_home_url(null, get_option('cah_news_set_news_page', 'news')));
+function cah_news_get_news_link($args=[]) {
+    return esc_url(add_query_arg($args, get_home_url(null, get_option('cah_news_set_news_page', 'news'))));
 }
 
 // Change page title (<head><title>...) to the correct blog

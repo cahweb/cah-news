@@ -19,12 +19,14 @@
      display: flex;
      color: inherit;
      padding: 4px;
+     margin-bottom: 4px;
 
     &:hover {
         color: inherit;
         cursor: pointer;
         text-decoration: none;
         background: #eceeef;
+        
     }
 
     &:active {

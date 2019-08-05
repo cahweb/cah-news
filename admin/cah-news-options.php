@@ -3,6 +3,7 @@
 $msg = '';
 
 add_action('admin_init', 'cah_news_options_update');
+// Process options in POST to 
 function cah_news_options_update() {
     global $msg;
     if (isset($_POST['doSetDept']) && $_POST['doSetDept'] == 'on' && !empty($_POST['setDept'])) {
@@ -50,6 +51,7 @@ function cah_news_set_news_page_field() {
     $value = get_option($field_title);
     if ($value) {
         $post = sprintf('<a href="%s">Link</a>', home_url($value)); 
+        echo home_url() . '/';
     }
     else {
         $post = '(unset)'; 
@@ -63,7 +65,6 @@ function cah_news_set_news_page_field() {
 
 // Table view of departments to select for display 
 function cah_news_display_dept2_field($args) {
-    // get_departments_table(); 
     $field_title = 'cah_news_display_dept2'; 
     $field_value = get_option($field_title) ? get_option($field_title) : array(); 
     $field_name = $field_title . '[]'; 
@@ -117,7 +118,6 @@ function cah_news_display_dept2_field($args) {
                 // let checkboxes = document.forms['cah-news'].elements[name];
                 for(let i=0; i<checkboxes.length; i++) {
                     let cb = checkboxes[i]; 
-                    console.log(cb.value); 
                     cb.checked = source.checked; 
                 }
             }
@@ -163,10 +163,11 @@ function cah_news_options_page() {
 
         <form method="post" action="options.php" id='cah-news'>
             <? 
-            settings_fields('cah_news_display_dept_section');
             settings_fields('cah_news_display_dept2_section');
             do_settings_sections('cah_news_options');
-            cah_news_set_dept_field();
+            if (get_current_blog_id() == 1) {
+                cah_news_set_dept_field();
+            }
             submit_button();
             ?>
 
@@ -175,7 +176,5 @@ function cah_news_options_page() {
     </div>
 <?php
 }
-
-
 
 ?>

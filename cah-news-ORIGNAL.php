@@ -321,7 +321,6 @@ require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-search.php';
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-shortcode.php';
 require_once CAH_NEWS_PLUGIN_PATH . 'admin/cah-news-toolbar.php';
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-meta.php';
-require_once CAH_NEWS_PLUGIN_PATH . 'includes/test.php';
 
 // Included admin files
 if (is_admin()) {
