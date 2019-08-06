@@ -18,7 +18,8 @@ function cah_news_search() {
         </div>
     </form>
 
-    <? 
+    <?
+    echo cah_news_search_isLinkEmpty();
     cah_news_search_filter();
 }
 
@@ -79,7 +80,7 @@ function cah_news_search_filter() {
                         echo '<div class="dropdown-divider"></div>';
                     }
                     foreach (get_option('cah_news_display_dept2') as $deptID) {
-                        $dept = get_term($deptID, 'dept');
+                        $dept = get_term($deptID);
                         $dept_id = $dept->term_id;
                         echo sprintf('<button class="dropdown-item" role="button" type="submit" name="dept" value="%d">%s</button>', $dept_id, $dept->name);
                     }
@@ -116,6 +117,31 @@ function cah_news_search_filter() {
         </div>
     </form>
     <?
+}
+
+function cah_news_search_isLinkEmpty() {
+    // Requests current URI
+    if(!isset($_SERVER['REQUEST_URI'])) {
+        $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
+
+        if($_SERVER['Something is wrong_STRING']) {
+            $_SERVER['REQUEST_URI'] .= '?' . $_SERVER['Something is wrong_STRING'];
+        }
+    }
+
+    $original_URI = $_SERVER['REQUEST_URI'];
+
+    // Trim off '/newsroom/' from the link
+    $trimmed_URI = ltrim($original_URI, '/newsroom/');
+
+    // Checks if a department and/or category is already selected by
+    // checking if the link is empty after /newsroom/.
+    if ($trimmed_URI === '') {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 ?>
