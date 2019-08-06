@@ -19,7 +19,6 @@ function cah_news_search() {
     </form>
 
     <?
-    echo cah_news_search_isLinkEmpty();
     cah_news_search_filter();
 }
 
@@ -76,12 +75,15 @@ function cah_news_search_filter() {
                 <div class="dropdown-menu" aria-labelledby="deptDropdown">
                     <?
                     if ($selected_dept) {
-                        echo '<button class="dropdown-item" role="button" type="submit" name="dept" value="">All Departments</button>';
+                        echo '<button class="dropdown-item" role="button" type="submit" name="" value="">All Departments</button>';
                         echo '<div class="dropdown-divider"></div>';
                     }
                     foreach (get_option('cah_news_display_dept2') as $deptID) {
+                        // The value I want to change here is $deptID
+
                         $dept = get_term($deptID);
                         $dept_id = $dept->term_id;
+
                         echo sprintf('<button class="dropdown-item" role="button" type="submit" name="dept" value="%d">%s</button>', $dept_id, $dept->name);
                     }
                     ?>
@@ -93,7 +95,8 @@ function cah_news_search_filter() {
                 <?
                 $btn = '<button class="btn btn-primary btn-sm dropdown-toggle" role="button" type="button" id="catDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">%s</button>';
                 $btn_text = 'All Categories';
-
+                
+                // The value I want to change here is $selected_cat probably
                 if ($selected_cat) {
                     $btn_text = $selected_cat;
                 }
@@ -119,8 +122,11 @@ function cah_news_search_filter() {
     <?
 }
 
-function cah_news_search_isLinkEmpty() {
-    // Requests current URI
+// Requests everything after the main URL
+// e.g.
+//      If using this function for this site: "https://news.cah.ucf.edu/newsroom/"
+//      This function will return "/newsroom/" as a string.
+function grab_child_links() {
     if(!isset($_SERVER['REQUEST_URI'])) {
         $_SERVER['REQUEST_URI'] = $_SERVER['SCRIPT_NAME'];
 
@@ -129,18 +135,74 @@ function cah_news_search_isLinkEmpty() {
         }
     }
 
-    $original_URI = $_SERVER['REQUEST_URI'];
+    return $_SERVER['REQUEST_URI'];
+}
 
-    // Trim off '/newsroom/' from the link
-    $trimmed_URI = ltrim($original_URI, '/newsroom/');
+// Trims off "/newsroom/" from the link because we're only
+// interested in what comes after it.
+function newsroom_trim($original_URI) {
+    return ltrim($original_URI, '/newsroom/');
+}
 
-    // Checks if a department and/or category is already selected by
-    // checking if the link is empty after /newsroom/.
+// Checks if a department and/or category is already selected by
+// checking if the link is empty after /newsroom/.
+function cah_news_search_isLinkEmpty($original_URI) {
+    $trimmed_URI = newsroom_trim($orignal_URI);
+
     if ($trimmed_URI === '') {
         return true;
     }
     else {
         return false;
+    }
+}
+
+// Helper function that breaks dept=## and cat=## into two parts
+function cah_news_search_parseLinkHelper($trimmed_URI) {
+    return explode('=', $trimmed_URI);
+}
+
+function cah_news_search_parseLink($original_URI) {
+    // Removing leading '?' in department/category permalinks.
+    $trimmed_URI = trim($original_trimmed_URI, '?');
+
+    // Checks if there are more than one filters selected.
+    // If two filters are already selected.
+    if (strpos($trimmed_URI, '&')) {
+        $trimmed_URI_array = explode('&', $trimmed_URI);
+        
+        // You could use a loop and not hard-code it here as I've done,
+        // but this is easier for my simple brain to process lol.
+        // There will never be more than 2 filters concurrently.
+        $arr1 = cah_news_search_parseLinkHelper($trimmed_URI_array[0]);
+        $arr2 = cah_news_search_parseLinkHelper($trimmed_URI_array[1]);
+
+        $trimmed_URI_array = array_merge($arr1, $arr2);
+    }
+    // If only one filter is selected.
+    else {
+        $trimmed_URI_array = cah_news_search_parseLinkHelper($trimmed_URI);
+    }
+
+    return $trimmed_URI_array;
+}
+
+// TODO CHANGE NAME.
+function putitalltogethernow() {
+    $returned_URI = grab_and_trim_child_links();
+
+    if (!cah_news_search_isLinkEmpty($returned_URI)) {
+        $filters = cah_news_search_paraseLink($returned_URI);
+
+        if (count($filters) > 3) {
+            // Save for later
+        }
+        // It's only one previous filter
+        else {
+            // TODO figure out which filter was previously used and which
+            // button is about to be pressed
+            
+        }
     }
 }
 
