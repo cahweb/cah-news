@@ -14,7 +14,6 @@ function cah_news_search() {
                     <i class="fa fa-search"></i>
                 </button>
             </span>
-            <span class="input-group-addon"><a href="<?= cah_news_get_news_page_link() ?>">Reset</a></span>
         </div>
     </form>
 
@@ -63,17 +62,26 @@ function cah_news_search_filter() {
     <!-- New filter form, dual filter possible -->
     <form class="form-inline mb-3" method="GET" action="<?= $action ?>">
         <!-- Department Select -->
-        <select name="dept" class="form-control form-control-sm">
+        <select name="dept" class="btn btn-default btn-sm" style="background: lightgrey">
             <?
             // Condition checks if a department is selected, makes the
             // department the selected option.
             if ($selected_dept) {
-                echo sprintf('<option value="%d" selected>%s</option>', $selected_dept_id, $selected_dept);
+                echo sprintf('<option value="%d" class="dropdown-menu">%s</option>', $selected_dept_id, $selected_dept);
+            }
+            else {
+                // Default "all" option.
+                echo '<option value="" class="dropdown-menu">All Departments</option>';
             }
 
-            // Default option, remains at the top of the select options when
-            // selecting other departments.
-            echo '<option value="">All Departments</option>';
+            // Remains at the top of the select options when selecting other
+            // departments.
+            if ($dept->term_id !== $selected_dept_id) {
+                echo '<option value="" class="dropdown-item">All Departments</option>';
+
+                // Really janky select option divider.
+                echo '<option class="dropdown-item" disabled>-----------</option>';
+            }
 
             // Generates all of the other department options.
             foreach (get_option('cah_news_display_dept2') as $deptID) {
@@ -85,24 +93,33 @@ function cah_news_search_filter() {
                     continue;
                 }
                 else {
-                    echo sprintf('<option name="dept" value="%d">%s</option>', $dept_id, $dept->name);
+                    echo sprintf('<option name="dept" value="%d" class="dropdown-item">%s</option>', $dept_id, $dept->name);
                 }
             }
             ?>
         </select>
         
         <!-- Category Select -->
-        <select name="cat" class="form-control form-control-sm ml-2">
+        <select name="cat" class="btn btn-default btn-sm ml-3" style="background: lightgrey">
             <?
             // Condition checks if a category is selected, makes the category
             // the selected option.
             if ($selected_cat) {
-                echo sprintf('<option value="%d" selected>%s</option>', $selected_cat_id, $selected_cat);
+                echo sprintf('<option value="%d" class="dropdown-menu">%s</option>', $selected_cat_id, $selected_cat);
+            }
+            else {
+                // Default "all" option.
+                echo '<option value="" class="dropdown-menu">All Categories</option>';
             }
             
-            // Default option, remains at the top of the select options when
-            // selecting other categories.
-            echo '<option value="">All Categories</option>';
+            // Remains at the top of the select options when selecting other
+            // categories.
+            if ($cat->term_id !== $selected_cat_id) {
+                echo '<option value="" class="dropdown-item">All Categories</option>';
+
+                // Really janky select option divider.
+                echo '<option class="dropdown-item" disabled>-----------</option>';
+            }
 
             foreach ($cats as $cat) {
                 // This prevents duplicate options.
@@ -111,14 +128,17 @@ function cah_news_search_filter() {
                 }
                 else {
                     if (in_array($cat->name, $excluded_slugs)) continue;
-                    echo sprintf('<option name="cat" value="%d">%s</option>', $cat->term_id, $cat->name);
+                    echo sprintf('<option name="cat" value="%d" class="dropdown-item">%s</option>', $cat->term_id, $cat->name);
                 }
             }
             ?>
         </select>
         
         <!-- Filter submit button -->
-        <button class="btn btn-primary btn-sm ml-2" type="submit">Filter</button>
+        <button class="btn btn-primary btn-sm ml-3" type="submit">Filter</button>
+
+        <!-- Reset all filters button. It just redirects to the home page. -->
+        <span class="input-group-addon ml-2"><a href="<?= cah_news_get_news_page_link() ?>">Reset</a></span>
     </form>
     <?
 }
