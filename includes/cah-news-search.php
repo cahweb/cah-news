@@ -45,6 +45,7 @@ function cah_news_search_filter() {
         
         if ($term_dept instanceof WP_Term) {
             $selected_dept = $term_dept->name;
+            $selected_dept_id = $term_dept->term_id;
         }
     }
 
@@ -54,69 +55,76 @@ function cah_news_search_filter() {
 
         if ($term_cat instanceof WP_Term) {
             $selected_cat = $term_cat->name;
+            $selected_cat_id = $term_cat->term_id;
         }
     }
     ?>
 
-    <form class="d-inline-block" method="GET" action="<?= $action ?>">
-        <div class="input-group mb-3">
-            <!-- Department Dropdown Button -->
-            <div class="dropdown">
-                <?
-                $btn = '<button class="btn btn-primary btn-sm dropdown-toggle" role="button" type="button" id="deptDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">%s</button>';
-                $btn_text = 'All Departments';
+    <!-- New filter form, dual filter possible -->
+    <form class="form-inline mb-3" method="GET" action="<?= $action ?>">
+        <!-- Department Select -->
+        <select name="dept" class="form-control form-control-sm">
+            <?
+            // Condition checks if a department is selected, makes the
+            // department the selected option.
+            if ($selected_dept) {
+                echo sprintf('<option value="%d" selected>%s</option>', $selected_dept_id, $selected_dept);
+            }
+
+            // Default option, remains at the top of the select options when
+            // selecting other departments.
+            echo '<option value="">All Departments</option>';
+
+            // Generates all of the other department options.
+            foreach (get_option('cah_news_display_dept2') as $deptID) {
+                $dept = get_term($deptID);
+                $dept_id = $dept->term_id;
                 
-                if ($selected_dept) {
-                    $btn_text = $selected_dept;
+                // This prevents duplicate options.
+                if ($dept_id === $selected_dept_id) {
+                    continue;
                 }
-                echo sprintf($btn, $btn_text);
-                ?>
-
-                <div class="dropdown-menu" aria-labelledby="deptDropdown">
-                    <?
-                    if ($selected_dept) {
-                        echo '<button class="dropdown-item" role="button" type="submit" name="" value="">All Departments</button>';
-                        echo '<div class="dropdown-divider"></div>';
-                    }
-                    foreach (get_option('cah_news_display_dept2') as $deptID) {
-                        $dept = get_term($deptID);
-                        $dept_id = $dept->term_id;
-
-                        echo sprintf('<button class="dropdown-item" role="button" type="submit" name="dept" value="%d">%s</button>', $dept_id, $dept->name);
-                    }
-                    ?>
-                </div>
-            </div>
-
-            <!-- Category Dropdown Button -->
-            <div class="dropdown ml-2">
-                <?
-                $btn = '<button class="btn btn-primary btn-sm dropdown-toggle" role="button" type="button" id="catDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">%s</button>';
-                $btn_text = 'All Categories';
-
-                if ($selected_cat) {
-                    $btn_text = $selected_cat;
+                else {
+                    echo sprintf('<option name="dept" value="%d">%s</option>', $dept_id, $dept->name);
                 }
-                echo sprintf($btn, $btn_text);
-                ?>
+            }
+            ?>
+        </select>
+        
+        <!-- Category Select -->
+        <select name="cat" class="form-control form-control-sm ml-2">
+            <?
+            // Condition checks if a category is selected, makes the category
+            // the selected option.
+            if ($selected_cat) {
+                echo sprintf('<option value="%d" selected>%s</option>', $selected_cat_id, $selected_cat);
+            }
+            
+            // Default option, remains at the top of the select options when
+            // selecting other categories.
+            echo '<option value="">All Categories</option>';
 
-                <div class="dropdown-menu" aria-labelledby="catDropdown">
-                    <?
-                    if ($selected_cat) {
-                        echo '<button class="dropdown-item" role="button" type="submit" name="cat" value="">All Categories</button>';
-                        echo '<div class="dropdown-divider"></div>';
-                    }
-                    foreach ($cats as $cat) {
-                        if (in_array($cat->name, $excluded_slugs)) continue;
-                        echo sprintf('<button class="dropdown-item" role="button" type="submit" name="cat" value="%d">%s</button>', $cat->term_id, $cat->name);
-                    }
-                    ?>
-                </div>
-            </div>
-
-        </div>
+            foreach ($cats as $cat) {
+                // This prevents duplicate options.
+                if ($cat->term_id === $selected_cat_id) {
+                    continue;
+                }
+                else {
+                    if (in_array($cat->name, $excluded_slugs)) continue;
+                    echo sprintf('<option name="cat" value="%d">%s</option>', $cat->term_id, $cat->name);
+                }
+            }
+            ?>
+        </select>
+        
+        <!-- Filter submit button -->
+        <button class="btn btn-primary btn-sm ml-2" type="submit">Filter</button>
     </form>
     <?
+}
+
+function test() {
+    return;
 }
 
 ?>
