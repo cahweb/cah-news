@@ -11,13 +11,22 @@ function cah_news_shortcode($atts) {
         'view' => 'full',
         'cat'  => array(),
         'exclude' => array(),
+        'section_title' => "In the News",
+        'section_title_classes' => '',
+        'button_text' => "More News",
+        'button_classes' => ''
     ), $atts);
 
+    $section_title = $atts['section_title'];
+    $section_title_classes = $atts['section_title_classes'];
+    $button_text = $atts['button_text'];
+    $button_classes = $atts['button_classes'];
+
     if ($atts['view'] == 'preview') {
-        echo '<h2 class="h1" >' . "In the News" . '</h2>';
+        echo '<h2 class="h1 ' . $section_title_classes . '">' . $section_title . '</h2>';
         cah_news_get_news(3, false);
         $news_page = cah_news_get_news_page_link();
-        echo sprintf('<a class="btn btn-primary" href="%s">More News</a><br>', $news_page);
+        echo sprintf('<a class="btn btn-primary ' . $button_classes . '" href="%s">' . $button_text . '</a><br>', $news_page);
     }
     else {
         echo '<div class="container">';
