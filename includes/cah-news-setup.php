@@ -2,7 +2,7 @@
 
 // Load scripts and styles
 function cah_news_enqueue_assets() {   
-    wp_enqueue_script( 'cah_news_lazy_load', plugins_url('src/js/lazy_load.js', dirname(__FILE__)), array(), '1.0' , true );
+    wp_enqueue_script( 'cah_news_lazy_load', plugins_url('src/js/lazy_load.js', dirname(__FILE__)), array('jquery'), '1.0' , true );
     wp_enqueue_style( 'cah_news_stylesheet', plugins_url('static/cah-news.css', dirname(__FILE__)), array(), '1.0' , 'all' );
 }
 add_action('wp_enqueue_scripts', 'cah_news_enqueue_assets');

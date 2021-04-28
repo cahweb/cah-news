@@ -1,2 +1,23 @@
-.cah-news-item{display:flex;color:inherit;padding:4px}.cah-news-item:hover{color:inherit;cursor:pointer;text-decoration:none;background:#eceeef}.cah-news-item:active{text-decoration:none}
+.cah-news-item {
+  display: flex;
+  color: inherit;
+  padding: 4px;
+  margin-bottom: 4px;
+}
+.cah-news-item:hover {
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  background: #eceeef;
+}
+.cah-news-item:active {
+  text-decoration: none;
+}
+
+@media only screen and (max-width: 544px) {
+  .cah-news-item-excerpt {
+    display: none;
+  }
+}
+
 /*# sourceMappingURL=cah-news.css.map */

@@ -19,7 +19,7 @@ function cah_news_get_dept_option() {
     return get_option('cah_news_display_dept2');
 }
 
-function cah_news_get_news($per_page=8, $paged=true) {
+function cah_news_get_news($per_page=8, $paged=true, $args = NULL) {
     $dept = cah_news_get_dept_option();
     if(sizeof($dept)<5)
 	$query = array(
@@ -45,6 +45,10 @@ function cah_news_get_news($per_page=8, $paged=true) {
     }
     // Page number 
     $query['page'] = max(get_query_var('paged'), 1);
+
+    if( !is_null( $args ) && isset( $args['tags'] ) && !empty( $args['tags'] ) ){
+        $query['tags'] = $args['tags'];
+    }
 
     $result = cah_news_query($query, true);
     $posts = $result['posts'];
@@ -164,14 +168,19 @@ function cah_news_get_thumbnail($post, $sizes=['medium_large', 'medium','large']
 
 // Display post preview with JSON information from REST API
 function cah_news_display_post($post, $dept=0) {
-    if (!is_object($post)) return;
+    if (!is_object($post)) {
+        return;
+    }
+
     $title = $post->title->rendered;
     $excerpt = cah_news_excerpt($post->excerpt->rendered);
+    
     $link = $post->link;
     if ($dept) {
         $link = add_query_arg(['dept' => $dept], $link);
     }
     $link = esc_url($link);
+    
     $date = date_format(date_create($post->date), 'F d, Y');
     $thumbnail = '';
     // // $thumbnail = $post.embedded.{'wp:featuredmedia'}.media_details.sizes.thumbnail.source_url;
@@ -179,22 +188,29 @@ function cah_news_display_post($post, $dept=0) {
     {
         $thumbnail = $post->_embedded->{'wp:featuredmedia'}[0]->media_details->sizes->thumbnail->source_url;
     }
+	
+	// Looking to see if it links to an outside page
+	$links_to = (bool) get_post_meta( $post->id, '_links_to', true );
+	$links_to_target = (bool) get_post_meta( $post->id, '_links_to_target', true) == "_blank";
 
     ?>
 
-    <a class="cah-news-item" href="<?=$link?>">
+    <a class="cah-news-item" href="<?=$link?>"<?= $links_to && $links_to_target ? 'target="_blank" rel="noopener"' : ''?>>
     <div class="media py-3 px-2">
             <?
             if ($thumbnail) {
                 echo '<img data-src="' . $thumbnail . '" class="d-flex align-self-start mr-3" aria-label="Featured image">';
                 echo '<noscript><img src="' . $thumbnail . '" width="150" height="150" class="d-flex align-self-start mr-3" aria-label="Featured image"></noscript>';
             }
+            else {
+                echo '<input type="hidden" value="' . get_the_post_thumbnail_url( $post->ID ) . '">';
+            }
             ?>
             <div class="media-body">
                 <h5 class="mt-0"><?=$title?></h5>
                 <p>
                     <span class="text-muted"><?=$date?>&nbsp;</span>
-                    <?=$excerpt?>
+                    <span class="cah-news-item-excerpt"><?=$excerpt?></span>
                 </p>
             </div>
     </div>
@@ -280,6 +296,17 @@ function get_departments() {
         'hide_empty' => false,
         ]);
     restore_current_blog();
+
+    if( !is_array( $depts ) || empty( $depts ) ) {
+        $url = "https://news.cah.ucf.edu/wp-json/news/depts";
+        $response = wp_remote_get( $url, ['timeout' => 20] );
+        if( is_wp_error( $response ) ) {
+            $depts = [];
+        }
+        else {
+            $depts = json_decode( $response['body'] );
+        }
+    }
     return $depts;
 }
 

@@ -2,7 +2,7 @@
 
 /*
  *
- * Plugin Name: CAH News Plugin
+ * Plugin Name: CAH News Plugin (OLD)
  * Description: News aggregation and distribution for UCF College of Arts and Humanities department sites
  * Author: Sean Reedy
  *

@@ -59,7 +59,7 @@ function cah_news_set_news_page_field() {
     }
     ?>
     <input type='text', name='<?= $field_title ?>' value='<?= $value ?>'>
-    <?
+    <?php
     echo $post; 
 }
 
@@ -91,21 +91,25 @@ function cah_news_display_dept2_field($args) {
                 <th>Posts</th>
                 <th>Blog ID</th>
             </tr>
-            <?
+            <?php
+
+            $depts = get_departments();
+
+            // var_dump( $depts ); // For debug
            
-            foreach(get_departments() as $dept) {
+            foreach($depts as $dept) {
                 $checked = in_array($dept->term_id, $field_value) ? 'checked=checked' : '';
             ?>
                 <tr>
                     <td><input type="checkbox" name="<?=$field_name?>" value="<?=$dept->term_id?>" <?=$checked?> ></td>
-                    <td><? echo $dept->name; ?></td>
-                    <td><? echo $dept->term_id; ?></td>
-                    <td><? echo $dept->slug; ?></td>
-                    <td><? echo $dept->count; ?></td>
+                    <td><?php echo $dept->name; ?></td>
+                    <td><?php echo $dept->term_id; ?></td>
+                    <td><?php echo $dept->slug; ?></td>
+                    <td><?php echo $dept->count; ?></td>
 
                     <td><?= cah_news_get_blog_id($dept->term_id) ?></td>
                 </tr>
-            <?
+            <?php
             }
             ?>
 
@@ -122,7 +126,7 @@ function cah_news_display_dept2_field($args) {
                 }
             }
         </script>
-    <?
+    <?php
 }
 
 // Option to bulk set current uncategorized posts (handled in POST, not a setting)
@@ -130,11 +134,11 @@ function cah_news_set_dept_field() {
     ?>
     <h2>Set Department</h2>
     <input type="checkbox" name="doSetDept" id="setDept">
-    <label for="setDept">Apply Department taxonomy to this site's <b><? echo count(get_uncategorized_news()); ?></b>  uncategorized news posts:</label>
+    <label for="setDept">Apply Department taxonomy to this site's <b><?php echo count(get_uncategorized_news()); ?></b>  uncategorized news posts:</label>
 
     <input list="deptList" name="setDept" id="setDept" autocomplete="off">
     <datalist id="deptList">
-    <?
+    <?php
     $deptOptions = array_column(get_departments(), 'name'); 
     $currentBlog = get_bloginfo('name'); 
     if (!in_array($currentBlog, $deptOptions)) {
@@ -147,14 +151,14 @@ function cah_news_set_dept_field() {
     }
     ?>
     </datalist>
-    <?
+    <?php
 }
 
 // Form to set CAH News plugin options
 function cah_news_options_page() {
     ?>
     <div class="wrap">
-        <?
+        <?php
         global $msg;
         echo '<div> ' . $msg . '</div>';
         ?>
@@ -162,7 +166,7 @@ function cah_news_options_page() {
         <h1>CAH News Options</h1>
 
         <form method="post" action="options.php" id='cah-news'>
-            <? 
+            <?php 
             settings_fields('cah_news_display_dept2_section');
             do_settings_sections('cah_news_options');
             if (get_current_blog_id() == 1) {
