@@ -10,7 +10,7 @@
 
 // Constants
 define('CAH_NEWS_PLUGIN_PATH', plugin_dir_path(__FILE__));
-define('CAH_NEWS_REST_BASE', 'https://news.cah.ucf.edu/wp-json/wp/v2/');
+define('CAH_NEWS_REST_BASE', 'https://cah.ucf.edu/news/wp-json/wp/v2/news?');
 
 require_once CAH_NEWS_PLUGIN_PATH . 'includes/cah-news-setup.php';
 
@@ -298,7 +298,7 @@ function get_departments() {
     restore_current_blog();
 
     if( !is_array( $depts ) || empty( $depts ) ) {
-        $url = "https://news.cah.ucf.edu/wp-json/news/depts";
+        $url = "https://cah.ucf.edu/news/wp-json/news/depts";
         $response = wp_remote_get( $url, ['timeout' => 20] );
         if( is_wp_error( $response ) ) {
             $depts = [];
